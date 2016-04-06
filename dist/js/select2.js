@@ -4267,23 +4267,32 @@ S2.define('select2/dropdown/attachBody',[
     offset.bottom = offset.top + this.$container.outerHeight(false);
 
     var container = {
-      height: this.$container.outerHeight(false)
+      height: this.$container.outerHeight(false),
+      width: this.$container.outerWidth(false)
     };
 
     container.top = offset.top;
     container.bottom = offset.top + container.height;
 
     var dropdown = {
-      height: this.$dropdown.outerHeight(false)
+      height: this.$dropdown.outerHeight(false),
+      width: this.$dropdown.outerWidth(false)
     };
 
     var viewport = {
       top: $window.scrollTop(),
-      bottom: $window.scrollTop() + $window.height()
+      bottom: $window.scrollTop() + $window.height(),
+      right: $window.scrollLeft() + $window.width()
     };
 
     var enoughRoomAbove = viewport.top < (offset.top - dropdown.height);
     var enoughRoomBelow = viewport.bottom > (offset.bottom + dropdown.height);
+    var enoughRoomRight = function() {
+      return offset.left + dropdown.width <= viewport.right;
+    };
+    var enoughRoomLeft = function() {
+      return offset.left + viewport.right + container.width > dropdown.width;
+    };
 
     var css = {
       left: offset.left,
@@ -4326,6 +4335,10 @@ S2.define('select2/dropdown/attachBody',[
       this.$container
         .removeClass('select2-container--below select2-container--above')
         .addClass('select2-container--' + newDirection);
+    }
+    
+    if (!enoughRoomRight() && enoughRoomLeft()) {
+      css.left = offset.left + container.width - dropdown.width;
     }
 
     this.$dropdownContainer.css(css);
