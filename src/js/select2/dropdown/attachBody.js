@@ -77,31 +77,18 @@ define([
   };
 
   AttachBody.prototype._hideDropdown = function (decorated) {
+    this.$dropdown
+      .removeClass('select2-dropdown--below select2-dropdown--above')
     this.$dropdownContainer.detach();
   };
 
   AttachBody.prototype._attachPositioningHandler =
       function (decorated, container) {
     var self = this;
-
-    var scrollEvent = 'scroll.select2.' + container.id;
     var resizeEvent = 'resize.select2.' + container.id;
     var orientationEvent = 'orientationchange.select2.' + container.id;
 
-    var $watchers = this.$container.parents().filter(Utils.hasScroll);
-    $watchers.each(function () {
-      $(this).data('select2-scroll-position', {
-        x: $(this).scrollLeft(),
-        y: $(this).scrollTop()
-      });
-    });
-
-    $watchers.on(scrollEvent, function (ev) {
-      var position = $(this).data('select2-scroll-position');
-      $(this).scrollTop(position.y);
-    });
-
-    $(window).on(scrollEvent + ' ' + resizeEvent + ' ' + orientationEvent,
+    $(window).on(resizeEvent + ' ' + orientationEvent,
       function (e) {
       self._positionDropdown();
       self._resizeDropdown();
@@ -110,14 +97,10 @@ define([
 
   AttachBody.prototype._detachPositioningHandler =
       function (decorated, container) {
-    var scrollEvent = 'scroll.select2.' + container.id;
     var resizeEvent = 'resize.select2.' + container.id;
     var orientationEvent = 'orientationchange.select2.' + container.id;
 
-    var $watchers = this.$container.parents().filter(Utils.hasScroll);
-    $watchers.off(scrollEvent);
-
-    $(window).off(scrollEvent + ' ' + resizeEvent + ' ' + orientationEvent);
+    $(window).off(resizeEvent + ' ' + orientationEvent);
   };
 
   AttachBody.prototype._positionDropdown = function () {
@@ -125,6 +108,7 @@ define([
 
     var isCurrentlyAbove = this.$dropdown.hasClass('select2-dropdown--above');
     var isCurrentlyBelow = this.$dropdown.hasClass('select2-dropdown--below');
+    var isCurrentlyOpen = isCurrentlyAbove || isCurrentlyBelow
 
     var newDirection = null;
 
@@ -163,7 +147,8 @@ define([
 
     var css = {
       left: offset.left,
-      top: container.bottom
+      top: container.bottom,
+      right: 'auto',
     };
 
     // Fix positioning with static parents
@@ -174,7 +159,7 @@ define([
       css.left -= parentOffset.left;
     }
 
-    if (!isCurrentlyAbove && !isCurrentlyBelow) {
+    if (!isCurrentlyOpen) {
       newDirection = 'below';
     }
 
@@ -187,6 +172,10 @@ define([
     if (newDirection == 'above' ||
       (isCurrentlyAbove && newDirection !== 'below')) {
       css.top = container.top - dropdown.height;
+
+      if (this.$dropdownParent[0].style.position !== 'static') {
+        css.top = 0 - dropdown.height;
+      }
     }
 
     if (newDirection != null) {
@@ -197,9 +186,14 @@ define([
         .removeClass('select2-container--below select2-container--above')
         .addClass('select2-container--' + newDirection);
     }
-    
+
     if (!enoughRoomRight() && enoughRoomLeft()) {
       css.left = offset.left + container.width - dropdown.width;
+
+      if (this.$dropdownParent[0].style.position !== 'static') {
+        css.left = 'auto';
+        css.right = 0;
+      }
     }
 
     this.$dropdownContainer.css(css);
