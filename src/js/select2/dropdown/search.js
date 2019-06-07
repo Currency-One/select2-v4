@@ -2,7 +2,11 @@ define([
   'jquery',
   '../utils'
 ], function ($, Utils) {
-  function Search () { }
+  function Search (decorated, $element, options) {
+    this.options = options;
+
+    decorated.call(this, $element, options);
+  }
 
   Search.prototype.render = function (decorated) {
     var $rendered = decorated.call(this);
@@ -17,6 +21,7 @@ define([
 
     this.$searchContainer = $search;
     this.$search = $search.find('input');
+    this.$search.attr('placeholder', this.options.get('searchInputPlaceholder'));
 
     $rendered.prepend($search);
 

@@ -3820,7 +3820,11 @@ S2.define('select2/dropdown/search',[
   'jquery',
   '../utils'
 ], function ($, Utils) {
-  function Search () { }
+  function Search (decorated, $element, options) {
+    this.options = options;
+
+    decorated.call(this, $element, options);
+  }
 
   Search.prototype.render = function (decorated) {
     var $rendered = decorated.call(this);
@@ -3835,6 +3839,7 @@ S2.define('select2/dropdown/search',[
 
     this.$searchContainer = $search;
     this.$search = $search.find('input');
+    this.$search.attr('placeholder', this.options.get('searchInputPlaceholder'));
 
     $rendered.prepend($search);
 
@@ -4795,6 +4800,7 @@ S2.define('select2/defaults',[
       maximumSelectionLength: 0,
       minimumResultsForSearch: 0,
       selectOnClose: false,
+      searchInputPlaceholder: '',
       sorter: function (data) {
         return data;
       },
